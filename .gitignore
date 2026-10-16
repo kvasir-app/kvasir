@@ -1,0 +1,36 @@
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+.expo/
+dist/
+npm-debug.*
+*.tsbuildinfo
+
+# Expo / React Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+web-build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# OS
+Thumbs.db
+
+# Local data (never commit user data)
+*.sqlite
+*.sqlite3
+*.db
