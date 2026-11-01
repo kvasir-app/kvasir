@@ -233,6 +233,86 @@ export function cardFromJson(json: string): FsrsCard {
   return deserializeCard(JSON.parse(json) as SerializedFsrsCard);
 }
 
+/**
+ * Column mapping for the denormalized FSRS state on `cards` (schema.md D10:
+ * field-wise columns, no JSON blob — `fsrs_due` must stay SQL-comparable and
+ * indexable). Shared by the repositories so the column layout is defined
+ * exactly once.
+ *
+ * Draft/reviewed cards have an UNINITIALIZED state (NULL columns except the
+ * NOT NULL counters); `columnsToState` rejects such rows — only active cards
+ * carry a schedulable state (activation via reviewCard initializes it).
+ */
+export interface FsrsStateColumns {
+  fsrs_due: string | null;
+  fsrs_stability: number | null;
+  fsrs_stability_fast: number | null;
+  fsrs_difficulty: number | null;
+  fsrs_state: number | null;
+  fsrs_schedule_status: string | null;
+  fsrs_card_id: string | null;
+  fsrs_last_review: string | null;
+  fsrs_reps: number;
+  fsrs_lapses: number;
+  fsrs_learning_steps: number;
+}
+
+/** Map a runtime card onto the `cards.fsrs_*` column values (dates as ISO-8601). */
+export function stateToColumns(card: FsrsCard): FsrsStateColumns {
+  return {
+    fsrs_due: card.dueAt.toISOString(),
+    fsrs_stability: card.stability,
+    fsrs_stability_fast: card.stabilityFast,
+    fsrs_difficulty: card.difficulty,
+    fsrs_state: card.state,
+    fsrs_schedule_status: card.scheduleStatus,
+    fsrs_card_id: card.cardId,
+    fsrs_last_review:
+      card.lastReviewAt === null ? null : card.lastReviewAt.toISOString(),
+    fsrs_reps: card.reps,
+    fsrs_lapses: card.lapses,
+    fsrs_learning_steps: card.learningStep,
+  };
+}
+
+/**
+ * Rebuild a runtime card from `cards.fsrs_*` columns (inverse of
+ * {@link stateToColumns}). Throws when the state is uninitialized (NULL
+ * columns) instead of silently producing a broken card.
+ */
+export function columnsToState(cols: FsrsStateColumns): FsrsCard {
+  if (
+    cols.fsrs_due === null ||
+    cols.fsrs_stability === null ||
+    cols.fsrs_stability_fast === null ||
+    cols.fsrs_difficulty === null ||
+    cols.fsrs_state === null ||
+    cols.fsrs_schedule_status === null ||
+    cols.fsrs_card_id === null
+  ) {
+    throw new Error(
+      'FSRS state not initialized (NULL columns) — only active cards have a schedulable state (activate via reviewCard first)',
+    );
+  }
+  return {
+    stability: cols.fsrs_stability,
+    stabilityFast: cols.fsrs_stability_fast,
+    difficulty: cols.fsrs_difficulty,
+    state: cols.fsrs_state as State,
+    scheduleStatus: cols.fsrs_schedule_status,
+    dueAt: parseIsoDate(cols.fsrs_due, 'fsrs_due'),
+    lastReviewAt:
+      cols.fsrs_last_review === null
+        ? null
+        : parseIsoDate(cols.fsrs_last_review, 'fsrs_last_review'),
+    cardId: cols.fsrs_card_id,
+    reps: cols.fsrs_reps,
+    lapses: cols.fsrs_lapses,
+    scheduledDays: 0,
+    learningStep: cols.fsrs_learning_steps,
+  };
+}
+
 function assertVersion(data: { v?: unknown }): void {
   if (data?.v !== 1) {
     throw new Error(`Unsupported fsrs serialization version: ${String(data?.v)}`);
