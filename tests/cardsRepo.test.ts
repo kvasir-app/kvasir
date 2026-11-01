@@ -340,10 +340,20 @@ describe('Entwurfs-Workflow: markCardReviewed / reviewCard', () => {
     expect(reviewed.updated_at > card.updated_at).toBe(true);
   });
 
-  it('markCardReviewed rejects an already active card', async () => {
+  it('markCardReviewed: active→reviewed keeps the FSRS state (quality loop, schema.md §4)', async () => {
     const card = await createCard(db, makeSelfInput());
-    await reviewCard(db, card.id);
-    await expect(markCardReviewed(db, card.id)).rejects.toThrow(/active/);
+    const active = await reviewCard(db, card.id);
+    const pulled = await markCardReviewed(db, card.id);
+    expect(pulled.entwurfsstatus).toBe('reviewed');
+    // The whole FSRS state survives the pull — the card keeps its scheduling
+    // history and re-enters the loop with it when reviewCard re-activates it.
+    expect(pulled.fsrs_due).toBe(active.fsrs_due);
+    expect(pulled.fsrs_stability).toBe(active.fsrs_stability);
+    expect(pulled.fsrs_difficulty).toBe(active.fsrs_difficulty);
+    expect(pulled.fsrs_state).toBe(active.fsrs_state);
+    expect(pulled.fsrs_reps).toBe(active.fsrs_reps);
+    expect(pulled.fsrs_lapses).toBe(active.fsrs_lapses);
+    expect(pulled.updated_at >= active.updated_at).toBe(true);
   });
 
   it('both functions throw for missing ids', async () => {

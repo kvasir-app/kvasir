@@ -7,7 +7,9 @@
  *  - Entwurfs-Workflow: createCard always stores `entwurfsstatus='draft'`.
  *    reviewCard moves draft→active (or reviewed→active) and initializes the
  *    FSRS state (createEmptyCard equivalent). draft→reviewed does NOT touch
- *    the FSRS state.
+ *    the FSRS state. markCardReviewed also implements the quality-loop
+ *    transition active→reviewed (schema.md §4/§5 Pfeil 8): the FSRS state is
+ *    kept, the card drops out of getDueCards until re-activation.
  *  - MC fields are stored as JSON strings (mc_optionen: string[],
  *    mc_richtige_indizes: number[], 0-based). The DB CHECK enforces
  *    presence/absence per typ; this repo validates structure and index range
@@ -425,10 +427,18 @@ export async function updateCard(
 }
 
 /**
- * Move a card to `entwurfsstatus='reviewed'` (content signed off, not yet in
- * rotation). Allowed from draft and reviewed. Does NOT touch the FSRS state
- * (activation happens via reviewCard). Throws when the card does not exist
- * or is already active.
+ * Move a card to `entwurfsstatus='reviewed'`.
+ *
+ * Two documented transitions (docs/schema.md §4):
+ *  - draft|reviewed → reviewed: content signed off, not yet in rotation. The
+ *    FSRS state stays untouched (uninitialized; activation happens later via
+ *    reviewCard).
+ *  - active → reviewed: quality feedback loop ("zur Überarbeitung gezogen",
+ *    schema.md §5 Pfeil 8). The card keeps its ENTIRE FSRS state and drops
+ *    out of getDueCards (fsrs_due only matters for active cards) until it is
+ *    re-activated via reviewCard.
+ *
+ * Throws when the card does not exist.
  */
 export async function markCardReviewed(
   db: DbConnection,
@@ -443,10 +453,13 @@ export async function markCardReviewed(
     if (current === undefined) {
       throw new Error(`Card not found: ${id}`);
     }
-    if (current === 'active') {
-      throw new Error(
-        `Card ${id} is already active; draft→reviewed is the only reviewed-transition`,
+    if (current === 'reviewed') {
+      // already where it needs to be — keep updated_at stable
+      const unchanged = await txn.getAllAsync<CardRow>(
+        `SELECT ${CARD_COLUMNS} FROM cards WHERE id = ?`,
+        id,
       );
+      return rowToCard(unchanged[0]);
     }
     await txn.runAsync(
       "UPDATE cards SET entwurfsstatus = 'reviewed', updated_at = ? WHERE id = ?",

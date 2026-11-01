@@ -26,16 +26,23 @@ function makeConnection(db: DatabaseSync): MigrationConnection {
       db.exec(source);
     },
     async runAsync(source: string, ...params: unknown[]) {
-      return db.prepare(source).run(...(trimParams(params) as never[]));
+      // node:sqlite names it `lastInsertRowid`, expo-sqlite `lastInsertRowId`
+      // — same value (sqlite3_last_insert_rowid), only the casing differs.
+      const result = db.prepare(source).run(...(trimParams(params) as never[]));
+      return {
+        changes: Number(result.changes),
+        lastInsertRowId: Number(result.lastInsertRowid),
+      };
     },
     async getAllAsync<T>(source: string, ...params: unknown[]) {
       return db.prepare(source).all(...(trimParams(params) as never[])) as T[];
     },
-    async withExclusiveTransactionAsync(task: (txn: MigrationConnection) => Promise<void>) {
+    async withExclusiveTransactionAsync<T>(task: (txn: MigrationConnection) => Promise<T>) {
       db.exec('BEGIN IMMEDIATE');
       try {
-        await task(this);
+        const result = await task(this);
         db.exec('COMMIT');
+        return result;
       } catch (error) {
         db.exec('ROLLBACK');
         throw error;
