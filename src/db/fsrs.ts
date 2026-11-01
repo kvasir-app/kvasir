@@ -252,3 +252,13 @@ function parseIsoDate(value: string | null, field: string): Date {
 
 // Re-exports so the rest of the app can stay decoupled from ts-fsrs internals.
 export { Rating, State };
+
+// Task-spec aliases: the scaffold contract names the helpers
+// serializeState/deserializeState. They are the card-level (de)serializers —
+// a ts-fsrs "State object" in this codebase is the FsrsCard (v6 shape).
+export {
+  serializeCard as serializeState,
+  deserializeCard as deserializeState,
+  cardToJson as stateToJson,
+  cardFromJson as stateFromJson,
+};
