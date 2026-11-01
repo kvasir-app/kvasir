@@ -36,6 +36,17 @@ npm run test         # vitest (unit tests, no emulator needed)
 npx expo-doctor      # dependency/config sanity check
 ```
 
+Seed data and the end-to-end smoke test are described in
+[`docs/seed-and-tests.md`](docs/seed-and-tests.md) — short version:
+
+```bash
+# 2 example decks x 5 cards (idempotent; dry-run into :memory: without a path)
+node --experimental-strip-types --import ./scripts/seed-register.mjs src/db/seed.ts kvasir.db
+
+# only the end-to-end smoke test (full feedback loop on a fresh in-memory DB)
+npx vitest run tests/smoke.test.ts
+```
+
 The first run on a device/emulator needs a development build (`npx expo run:android`)
 because expo-sqlite ships native code that is not part of Expo Go.
 
