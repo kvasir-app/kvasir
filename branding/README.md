@@ -3,6 +3,12 @@
 - `icon.svg` — Master icon (vector). Edit this, then re-render the PNGs.
 - `icon-1024.png` — App icon master (Expo: `icon` field, 1024×1024)
 - `icon-512.png` / `icon-256.png` / `icon-48.png` — web / favicon sizes
+- `adaptive-foreground.svg` — Android adaptive icon foreground (torch in safe zone)
+- `adaptive-background.svg` — Android adaptive icon background (navy gradient, full bleed)
+- `adaptive-monochrome.svg` — Android themed-icon (monochrome) layer
+
+Rendered into `../assets/`: `icon.png` (1024), `adaptive-icon.png` (256),
+`favicon.png` (48), `android-icon-{foreground,background,monochrome}.png` (432).
 
 ## Design
 

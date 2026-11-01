@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Kvasir adaptive icon monochrome layer: solid torch silhouette in the Android safe zone. -->
+  <g transform="translate(46.6 91.2) scale(0.8187)" fill="#ffffff">
+    <rect x="476" y="556" width="72" height="300" rx="34"/>
+    <rect x="454" y="500" width="116" height="70" rx="30"/>
+    <path d="M 512 522
+             C 446 496 408 448 408 390
+             C 408 320 446 264 490 196
+             C 498 184 508 178 520 172
+             C 534 166 544 172 540 184
+             C 560 232 578 286 590 340
+             C 602 392 596 446 574 482
+             C 556 510 534 520 512 522 Z"/>
+    <circle cx="640" cy="330" r="12"/>
+    <circle cx="688" cy="246" r="8"/>
+    <circle cx="724" cy="196" r="5"/>
+  </g>
+</svg>

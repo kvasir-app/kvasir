@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Kvasir adaptive icon foreground: torch centered in the Android safe zone (66% circle).
+       Derived from icon.svg: torch group scaled 0.8187 and re-centered. -->
+  <defs>
+    <linearGradient id="wood" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#5c2708"/>
+      <stop offset="0.55" stop-color="#8a4513"/>
+      <stop offset="1" stop-color="#c8741f"/>
+    </linearGradient>
+    <linearGradient id="bind" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ca8a04"/>
+      <stop offset="1" stop-color="#7c3a0a"/>
+    </linearGradient>
+    <linearGradient id="flame" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#dc2626"/>
+      <stop offset="0.4" stop-color="#ea580c"/>
+      <stop offset="0.75" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#fde68a"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(46.6 91.2) scale(0.8187)">
+    <!-- Griff: lang und schlank, mit Rim-Light -->
+    <rect x="476" y="556" width="72" height="300" rx="34" fill="url(#wood)"/>
+    <rect x="486" y="600" width="10" height="220" rx="5" fill="#fbbf24" opacity="0.18"/>
+
+    <!-- Wicklung -->
+    <rect x="454" y="500" width="116" height="70" rx="30" fill="url(#bind)"/>
+    <line x1="470" y1="506" x2="500" y2="564" stroke="#2d1303" stroke-width="10" stroke-linecap="round" opacity="0.7"/>
+    <line x1="506" y1="504" x2="536" y2="562" stroke="#2d1303" stroke-width="10" stroke-linecap="round" opacity="0.7"/>
+    <line x1="542" y1="502" x2="572" y2="560" stroke="#2d1303" stroke-width="10" stroke-linecap="round" opacity="0.7"/>
+
+    <!-- Flamme -->
+    <path d="M 512 522
+             C 446 496 408 448 408 390
+             C 408 320 446 264 490 196
+             C 498 184 508 178 520 172
+             C 534 166 544 172 540 184
+             C 560 232 578 286 590 340
+             C 602 392 596 446 574 482
+             C 556 510 534 520 512 522 Z"
+          fill="url(#flame)"/>
+    <path d="M 508 488
+             C 466 468 448 434 448 398
+             C 448 358 470 326 496 288
+             C 502 279 512 274 522 270
+             C 530 267 536 272 533 280
+             C 548 316 560 350 566 384
+             C 572 420 562 456 536 476
+             C 527 482 517 486 508 488 Z"
+          fill="#fff7ed" opacity="0.94"/>
+
+    <!-- Funken -->
+    <circle cx="640" cy="330" r="12" fill="#fbbf24" opacity="0.95"/>
+    <circle cx="688" cy="246" r="8" fill="#f59e0b" opacity="0.8"/>
+    <circle cx="724" cy="196" r="5" fill="#fde68a" opacity="0.6"/>
+  </g>
+</svg>

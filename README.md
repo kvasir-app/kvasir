@@ -24,6 +24,46 @@ Early development — the open-core MVP is being built. Scope and milestones are
 
 React Native (Expo) + TypeScript · SQLite (on-device) · ts-fsrs · lucide icons
 
+## Development
+
+Requirements: Node.js >= 24 (ts-fsrs v6), npm.
+
+```bash
+npm install          # install dependencies
+npm run start        # Expo dev server (press a = Android, i = iOS, w = web)
+npm run typecheck    # tsc --noEmit
+npm run test         # vitest (unit tests, no emulator needed)
+npx expo-doctor      # dependency/config sanity check
+```
+
+The first run on a device/emulator needs a development build (`npx expo run:android`)
+because expo-sqlite ships native code that is not part of Expo Go.
+
+## Project structure
+
+```
+app.json            Expo config (SDK 58, expo-router + expo-sqlite plugins)
+src/app/            expo-router routes (every file here is a screen)
+src/db/             data layer: openDatabase(), migrations, ts-fsrs wrapper
+src/db/migrations/  numbered SQL migrations (runner is idempotent)
+tests/              vitest unit tests (run on plain Node, no emulator)
+branding/           icon sources (icon.svg is the master)
+docs/               project documentation (schema.md = data model)
+```
+
+## Data layer conventions
+
+- `src/db/index.ts` exposes `openDatabase()` — the single entry point. It sets
+  connection PRAGMAs (`foreign_keys`, WAL) and runs pending migrations.
+- Migrations are numbered files in `src/db/migrations/NNNN_name.ts`, registered
+  in `migrations/index.ts`; applied versions are tracked in the `migrations`
+  table. Never edit a shipped migration — add a new one.
+- The ts-fsrs card state is persisted via `src/db/fsrs.ts`
+  (`serializeCard`/`deserializeCard`, lossless JSON roundtrip with version tag).
+  ts-fsrs v6 requires real `Date` objects — deserialization reanimates them.
+- Unit tests run the real migrations against Node's built-in SQLite
+  (`node:sqlite`) via a thin adapter — no emulator required.
+
 ## Principles
 
 - **Local-first:** Your data lives on your device. No account needed.
