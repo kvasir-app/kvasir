@@ -20,6 +20,8 @@
  * (expo-sqlite's SQLiteDatabase is structurally compatible; the test adapter
  * provides the tiny sync/async glue.)
  */
+import { migration0001 } from './0001_init';
+
 export interface MigrationConnection {
   execAsync(source: string): Promise<void>;
   runAsync(source: string, ...params: unknown[]): Promise<unknown>;
@@ -35,8 +37,6 @@ export interface Migration {
   /** SQL executed once, wrapped in a transaction by the runner. */
   up: string;
 }
-
-import { migration0001 } from './0001_init';
 
 /** All migrations in ascending version order. */
 export const MIGRATIONS: readonly Migration[] = [migration0001];

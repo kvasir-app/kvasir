@@ -15,7 +15,7 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Kvasir</Text>
-      <Text style={styles.text}>Learn, don't scroll.</Text>
+      <Text style={styles.text}>Learn, don&apos;t scroll.</Text>
       <Text style={styles.meta}>
         DB ready · migrations applied: {applied.map((m) => m.version).join(', ')}
       </Text>

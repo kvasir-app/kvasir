@@ -90,12 +90,12 @@ describe('migration runner (src/db/index.ts)', () => {
 
     const tables = sqlite
       .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
-      .all() as Array<{ name: string }>;
+      .all() as { name: string }[];
     const names = tables.map((t) => t.name);
     expect(names).toEqual(expect.arrayContaining(['migrations', 'decks', 'cards', 'review_log']));
 
     const cardsCols = (
-      sqlite.prepare('PRAGMA table_info(cards)').all() as Array<{ name: string }>
+      sqlite.prepare('PRAGMA table_info(cards)').all() as { name: string }[]
     ).map((c) => c.name);
     expect(cardsCols).toEqual(
       expect.arrayContaining([
@@ -126,7 +126,7 @@ describe('migration runner (src/db/index.ts)', () => {
 
     const indexes = sqlite
       .prepare("SELECT name FROM sqlite_master WHERE type='index' AND name LIKE 'idx_%'")
-      .all() as Array<{ name: string }>;
+      .all() as { name: string }[];
     expect(indexes.map((i) => i.name)).toEqual(
       expect.arrayContaining(['idx_cards_deck_id', 'idx_cards_due_active', 'idx_review_log_karte']),
     );
@@ -189,7 +189,7 @@ describe('migration runner (src/db/index.ts)', () => {
 
     const tables = sqlite
       .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
-      .all() as Array<{ name: string }>;
+      .all() as { name: string }[];
     expect(tables.map((t) => t.name)).toEqual(
       expect.arrayContaining(['migrations', 'decks', 'cards', 'review_log']),
     );
