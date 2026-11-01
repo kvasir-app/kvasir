@@ -12,21 +12,42 @@
  */
 
 /**
- * Minimal connection interface used by the migration runner.
+ * Minimal connection interface used by the migration runner AND the repos.
  *
  * Deliberately NOT the full expo-sqlite SQLiteDatabase: node:sqlite's
  * DatabaseSync satisfies it too, which lets M1 unit tests run the exact same
- * migrations against an in-memory SQLite without a device/emulator.
+ * code against an in-memory SQLite without a device/emulator.
  * (expo-sqlite's SQLiteDatabase is structurally compatible; the test adapter
  * provides the tiny sync/async glue.)
+ *
+ * Signature notes (kept compatible with expo-sqlite):
+ *  - runAsync mirrors expo-sqlite's SQLiteRunResult ({ lastInsertRowId,
+ *    changes }) so call sites can rely on `changes` for existence checks.
+ *  - withExclusiveTransactionAsync is generic: the task may return a value
+ *    (repos return the updated row from inside the transaction).
  */
 import { migration0001 } from './0001_init';
 
+/** Mirrors expo-sqlite's SQLiteRunResult. */
+export interface DbRunResult {
+  lastInsertRowId: number;
+  changes: number;
+}
+
+/** Values bindable as SQL parameters (mirrors expo-sqlite's SQLiteBindValue). */
+export type DbBindValue = string | number | null | boolean | Uint8Array;
+
 export interface MigrationConnection {
   execAsync(source: string): Promise<void>;
-  runAsync(source: string, ...params: unknown[]): Promise<unknown>;
-  getAllAsync<T>(source: string, ...params: unknown[]): Promise<T[]>;
-  withExclusiveTransactionAsync(task: (txn: MigrationConnection) => Promise<void>): Promise<void>;
+  runAsync(source: string, ...params: DbBindValue[]): Promise<DbRunResult>;
+  getAllAsync<T>(source: string, ...params: DbBindValue[]): Promise<T[]>;
+  /**
+   * Generic like expo-sqlite's own signature: the task may return a value
+   * (e.g. repos return the updated row from inside the transaction).
+   */
+  withExclusiveTransactionAsync<T>(
+    task: (txn: MigrationConnection) => Promise<T>,
+  ): Promise<T>;
 }
 
 export interface Migration {

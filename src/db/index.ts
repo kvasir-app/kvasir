@@ -19,13 +19,18 @@
  */
 import { openDatabaseAsync, type SQLiteDatabase } from 'expo-sqlite';
 import { runMigrations } from './migrations/runner';
+import type { MigrationConnection } from './migrations';
 
 export const DATABASE_NAME = 'kvasir.db';
 
 // Public surface of the db layer (app code imports from '../db' or '@/db').
 export { runMigrations, resetDatabaseForTests } from './migrations/runner';
 export type { AppliedMigration, MigrationRunResult } from './migrations/runner';
-export { MIGRATIONS, type Migration, type MigrationConnection } from './migrations';
+export {
+  MIGRATIONS,
+  type Migration,
+  type MigrationConnection,
+} from './migrations';
 
 /**
  * Connection-level PRAGMAs. Must NOT live inside migrations — they are no-ops
@@ -47,7 +52,7 @@ export async function applyConnectionPragmas(db: SQLiteDatabase): Promise<void> 
  */
 export async function prepareDatabase(db: SQLiteDatabase): Promise<void> {
   await applyConnectionPragmas(db);
-  await runMigrations(db);
+  await runMigrations(db as unknown as MigrationConnection);
 }
 
 /**
@@ -61,6 +66,6 @@ export async function openDatabase(
 ): Promise<SQLiteDatabase> {
   const db = await openDatabaseAsync(name);
   await applyConnectionPragmas(db);
-  await runMigrations(db);
+  await runMigrations(db as unknown as MigrationConnection);
   return db;
 }

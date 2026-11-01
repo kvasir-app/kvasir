@@ -4,6 +4,9 @@
  * The runner accepts the minimal `MigrationConnection` interface, so these
  * tests run the EXACT production migrations on node:sqlite (DatabaseSync,
  * bundled with Node >= 22) wrapped in a tiny async adapter. No emulator needed.
+ *
+ * The adapter lives in ./helpers/db so the repo tests reuse the exact same
+ * connection glue.
  */
 import { DatabaseSync } from 'node:sqlite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -12,40 +15,16 @@ import {
   runMigrations,
   type AppliedMigration,
 } from '../src/db/migrations/runner';
-import { MIGRATIONS, type MigrationConnection } from '../src/db/migrations';
-
-/** Wrap node:sqlite's synchronous DatabaseSync as an async MigrationConnection. */
-function makeConnection(db: DatabaseSync): MigrationConnection {
-  return {
-    async execAsync(source: string) {
-      db.exec(source);
-    },
-    async runAsync(source: string, ...params: unknown[]) {
-      return db.prepare(source).run(...(params as never[]));
-    },
-    async getAllAsync<T>(source: string, ...params: unknown[]) {
-      return db.prepare(source).all(...(params as never[])) as T[];
-    },
-    async withExclusiveTransactionAsync(task: (txn: MigrationConnection) => Promise<void>) {
-      db.exec('BEGIN IMMEDIATE');
-      try {
-        await task(this);
-        db.exec('COMMIT');
-      } catch (error) {
-        db.exec('ROLLBACK');
-        throw error;
-      }
-    },
-  };
-}
+import { MIGRATIONS } from '../src/db/migrations';
+import { makeTestDb } from './helpers/db';
 
 let sqlite: DatabaseSync;
-let conn: MigrationConnection;
+let conn: import('../src/db/migrations').MigrationConnection;
 
-beforeEach(() => {
-  sqlite = new DatabaseSync(':memory:');
-  sqlite.exec('PRAGMA foreign_keys = ON');
-  conn = makeConnection(sqlite);
+beforeEach(async () => {
+  // migrate: false — these tests exercise runMigrations() itself and call it
+  // explicitly; the helper would otherwise apply everything up front.
+  ({ sqlite, db: conn } = await makeTestDb({ migrate: false }));
 });
 
 afterEach(() => {
@@ -87,7 +66,6 @@ describe('migration runner (src/db/index.ts)', () => {
 
   it('creates all M1 tables and indexes with the expected columns', async () => {
     await runMigrations(conn);
-
     const tables = sqlite
       .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
       .all() as { name: string }[];
@@ -134,7 +112,6 @@ describe('migration runner (src/db/index.ts)', () => {
 
   it('enforces the schema constraints (FK, CHECK, defaults)', async () => {
     await runMigrations(conn);
-
     // FK: card without deck fails
     expect(() =>
       sqlite
